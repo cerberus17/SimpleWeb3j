@@ -7,6 +7,7 @@ import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.RemoteCall;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.EthAccounts;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
@@ -24,7 +25,12 @@ import rx.Observable;
 
 public class Main {
   public static void main(String[] args) {
-    Main.eventTest();
+    try {
+      Main.transactionTest();
+    }
+    catch (Throwable t) {
+      t.printStackTrace();
+    }
   }
 
   public static void eventTest() {
@@ -82,6 +88,25 @@ public class Main {
     catch (Throwable t) {
       t.printStackTrace();
     }
+  }
+
+  public static void transactionTest() throws Exception {
+    Web3j web3j = Web3j.build(new HttpService());
+
+    // Static Ganache test account keys
+    String rawPrivateKey = "70f1384b24df3d2cdaca7974552ec28f055812ca5e4da7a0ccd0ac0f8a4a9b00";
+    String rawPublicKey = "4c9b23b009630f4ba57cb2ed80916938aaacf752ed2379c42bcd000be37c5316bff7afec6c808d66cd2fd69874a8df97eff5";
+
+//      BigInteger publicKey = new BigInteger(rawPublicKey, 16);
+//      BigInteger privateKey = new BigInteger(rawPrivateKey, 16);
+
+    Credentials credentials = Credentials.create(rawPrivateKey);
+
+    SimpleEventContract contract = SimpleEventContract.load("0x6dd7c1c13df7594c27e0d191fd8cc21efbfc98b4", web3j, credentials, BigInteger.valueOf(2000000L), BigInteger.valueOf(6000000));
+    RemoteCall<TransactionReceipt> remoteCall = contract.setValue(BigInteger.valueOf(5));
+    TransactionReceipt receipt = remoteCall.send();
+
+    System.out.println("Receipt: " + receipt);
   }
 }
 
